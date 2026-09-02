@@ -2,7 +2,6 @@ package edu.sfsu.csc413.chess.model;
 
 /**
  * The two sides in a game of chess.
- *
  * <p>An enum rather than a boolean or an int: the compiler now rejects
  * meaningless values, and {@code switch} statements over it can be checked for
  * exhaustiveness.
@@ -16,7 +15,7 @@ public enum Color {
 
     /** The side whose turn it is after this one moves. */
     public Color opposite() {
-        throw new UnsupportedOperationException("M0b: your turn");
+        return this == WHITE ? BLACK : WHITE;
     }
 
     /**
@@ -24,16 +23,16 @@ public enum Color {
      * White moves up the board (+1), black moves down (-1).
      */
     public int pawnDirection() {
-        throw new UnsupportedOperationException("M0b: your turn");
+        return this == WHITE ? 1 : -1;
     }
 
     /** The rank pawns of this color start on (0-based). */
     public int pawnStartRank() {
-        throw new UnsupportedOperationException("M0b: your turn");
+        return this == WHITE ? 1 : 6;
     }
 
     /** The rank a pawn of this color must reach to promote (0-based). */
     public int promotionRank() {
-        throw new UnsupportedOperationException("M0b: your turn");
+        return this == WHITE ? 7 : 0;
     }
 }
