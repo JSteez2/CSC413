@@ -24,6 +24,6 @@ public class Knight extends Piece {
 
     @Override
     public List<Move> pseudoLegalMoves(Board board, Position from) {
-        throw new UnsupportedOperationException("M2: implement Knight.pseudoLegalMoves");
+        return steppingMoves(board, from, OFFSETS);
     }
 }
