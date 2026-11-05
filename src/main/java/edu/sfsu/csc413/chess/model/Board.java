@@ -40,6 +40,29 @@ public class Board {
     }
 
     /**
+     * The square holding {@code color}'s king, or {@code null} if that side
+     * has no king on the board.
+     *
+     * <p>A real game always has both kings, but tests build partial positions
+     * without them all the time, so {@code null} is a normal answer here, not
+     * an error.
+     */
+    public Position kingPosition(Color color) {
+        for (Position occupiedSquare : positionsOf(color)) {
+            // Look at every square that holds one of this colour's pieces.
+            Piece pieceFound = pieceAt(occupiedSquare);
+            // Get the piece standing on that square.
+            if (pieceFound.type() == PieceType.KING) {
+                // If that piece is a king, we found it.
+                return occupiedSquare;
+                // Hand back the square the king is on.
+            }
+        }
+        return null;
+        // We looked at every piece and none was a king.
+    }
+
+    /**
      * Lifts the moving piece off {@code from} and sets it down on {@code to}.
      * Checks nothing: deciding whether a move is allowed is {@code Game}'s job.
      * On a promotion, the piece set down is a new piece of the promoted type.

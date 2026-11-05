@@ -3,6 +3,7 @@ package edu.sfsu.csc413.chess.engine;
 import edu.sfsu.csc413.chess.model.Board;
 import edu.sfsu.csc413.chess.model.Color;
 import edu.sfsu.csc413.chess.model.Move;
+import edu.sfsu.csc413.chess.model.Piece;
 import edu.sfsu.csc413.chess.model.Position;
 
 import java.util.ArrayList;
@@ -35,14 +36,74 @@ public final class MoveGenerator {
     /**
      * Every move {@code color} may legally play in the given position.
      *
-     * <p>At M4 this is {@link #pseudoLegalMoves} unfiltered: the right colour
-     * and the right geometry. M5 adds the one global rule, king safety, here
-     * and only here. {@code Game.legalMoves()} calls this and does not change
-     * when it tightens.
+     * <p>A pseudo-legal move is kept only if it does not leave {@code color}'s
+     * own king in check. The only way to find out is to try it: each candidate
+     * is applied to the board, checked, and undone before the next one is
+     * tried, so the caller's board is exactly as it was when this returns.
+     * {@code Game.legalMoves()} calls this and did not change when it tightened.
      */
     public static List<Move> legalMoves(Board board, Color color) {
-        return pseudoLegalMoves(board, color);
-        // At M4, legal and pseudo-legal are the same list; M5 filters here.
+        List<Move> safeMoves = new ArrayList<>();
+        // An empty list to collect the moves that pass the king-safety test.
+        for (Move triedMove : pseudoLegalMoves(board, color)) {
+            // Try every move the pieces say they can make.
+            board.apply(triedMove);
+            // Play the move on the board for a moment.
+            boolean kingLeftExposed = isInCheck(board, color);
+            // After playing it, is our own king attacked?
+            board.undo(triedMove);
+            // Take the move back right away, before deciding anything.
+            if (!kingLeftExposed) {
+                // The king is safe after this move...
+                safeMoves.add(triedMove);
+                // ...so it is a legal move: keep it.
+            }
+        }
+        return safeMoves;
+        // Every move we kept; the board is back the way we found it.
+    }
+
+    /**
+     * True if {@code color}'s king is attacked by the other colour.
+     *
+     * <p>A side with no king on the board is never in check. Tests build
+     * positions without kings all the time, so that is a normal case.
+     */
+    public static boolean isInCheck(Board board, Color color) {
+        Position whereKingStands = board.kingPosition(color);
+        // Find where this colour's king is standing.
+        if (whereKingStands == null) {
+            // No king on the board at all...
+            return false;
+            // ...so nothing can be checking it.
+        }
+        Color opponentColor = color.opposite();
+        // The side that could be attacking our king.
+        return isAttacked(board, whereKingStands, opponentColor);
+        // In check means: the enemy attacks the king's square.
+    }
+
+    /**
+     * True if any piece of colour {@code attacker} attacks {@code target}.
+     *
+     * <p>"Attacks", not "could move there": a pawn moves straight ahead but
+     * attacks only diagonally. Each piece is asked through
+     * {@code Piece.attacks}, which {@code Pawn} overrides, so this method never
+     * asks what kind of piece it is looking at.
+     */
+    public static boolean isAttacked(Board board, Position target, Color attacker) {
+        for (Position enemySquare : board.positionsOf(attacker)) {
+            // Look at every square that holds one of the attacker's pieces.
+            Piece enemyPiece = board.pieceAt(enemySquare);
+            // Get the piece standing there.
+            if (enemyPiece.attacks(board, enemySquare, target)) {
+                // Ask the piece itself whether it attacks the target square.
+                return true;
+                // One attacker is enough.
+            }
+        }
+        return false;
+        // No piece of that colour attacks the target.
     }
 
     /**
