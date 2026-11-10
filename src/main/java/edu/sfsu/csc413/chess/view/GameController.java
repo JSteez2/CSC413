@@ -1,6 +1,15 @@
 package edu.sfsu.csc413.chess.view;
 
 import edu.sfsu.csc413.chess.engine.Game;
+import edu.sfsu.csc413.chess.engine.GameStatus;
+import edu.sfsu.csc413.chess.model.Color;
+import edu.sfsu.csc413.chess.model.Move;
+import edu.sfsu.csc413.chess.model.PieceType;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Connects the player's decisions to the game: carry out what was asked, then
@@ -19,6 +28,7 @@ public class GameController {
 
     private final Game game;
     private final BoardView view;
+    private boolean playerQuit = false;
 
     public GameController(Game game, BoardView view) {
         this.game = game;
@@ -35,7 +45,9 @@ public class GameController {
      * view with {@link BoardView#start}.
      */
     public void start() {
-        throw new UnsupportedOperationException("M6: implement GameController.start");
+        view.showMessage("Welcome to chess.");
+        view.render(game);
+        view.start(this);
     }
 
     /**
@@ -46,7 +58,10 @@ public class GameController {
      * {@code start}; an event-driven view never calls it.
      */
     public void runLoop() {
-        throw new UnsupportedOperationException("M6: implement GameController.runLoop");
+        while (!playerQuit && !game.isGameOver()) {
+            PlayerAction nextAction = view.nextAction(game);
+            handle(nextAction);
+        }
     }
 
     /**
@@ -57,6 +72,74 @@ public class GameController {
      * each of the four actions does and what the player is told.
      */
     public void handle(PlayerAction action) {
-        throw new UnsupportedOperationException("M6: implement GameController.handle");
+        switch (action) {
+            case PlayerAction.Move move -> playMove(move.notation());
+            case PlayerAction.Undo undo -> undoLastMove();
+            case PlayerAction.ShowMoves showMoves -> showLegalMoves();
+            case PlayerAction.Quit quit -> {
+                playerQuit = true;
+                view.showMessage("Goodbye.");
+                view.close();
+                return;
+            }
+        }
+
+        view.render(game);
+
+        if (game.isGameOver()) {
+            announceResult();
+            view.close();
+        }
+    }
+
+    /** Plays the move the player typed, or tells them it is not legal. */
+    private void playMove(String notation) {
+        Optional<Move> foundMove = game.findLegalMove(notation);
+
+        if (foundMove.isEmpty() && notation.length() == 4) {
+            PieceType promotionPiece = view.promotionChoice(game);
+            char promotionLetter = Character.toLowerCase(promotionPiece.symbol());
+            foundMove = game.findLegalMove(notation + promotionLetter);
+        }
+
+        if (foundMove.isPresent()) {
+            game.play(foundMove.get());
+        } else {
+            view.showMessage("Not a legal move: '" + notation + "'.");
+        }
+    }
+
+    /** Takes back the last move, or says there is nothing to take back. */
+    private void undoLastMove() {
+        Optional<Move> undoneMove = game.undoLastMove();
+
+        if (undoneMove.isEmpty()) {
+            view.showMessage("Nothing to undo.");
+        }
+    }
+
+    /** Shows every legal move, sorted, for example "20 legal moves: a2a3 a2a4 ...". */
+    private void showLegalMoves() {
+        List<String> moveNames = new ArrayList<>();
+        for (Move legalMove : game.legalMoves()) {
+            moveNames.add(legalMove.toString());
+        }
+        Collections.sort(moveNames);
+
+        String message = moveNames.size() + " legal moves:";
+        for (String moveName : moveNames) {
+            message = message + " " + moveName;
+        }
+        view.showMessage(message);
+    }
+
+    /** Says who won, or that it is a draw. */
+    private void announceResult() {
+        if (game.status() == GameStatus.CHECKMATE) {
+            Color winner = game.sideToMove().opposite();
+            view.showMessage("Checkmate. " + winner + " wins.");
+        } else {
+            view.showMessage("Stalemate. The game is a draw.");
+        }
     }
 }

@@ -1,28 +1,26 @@
 package edu.sfsu.csc413.chess;
 
 import edu.sfsu.csc413.chess.engine.Game;
-import edu.sfsu.csc413.chess.view.PieceGlyphs;
-import edu.sfsu.csc413.chess.view.TextBoardRenderer;
+import edu.sfsu.csc413.chess.view.BoardView;
+import edu.sfsu.csc413.chess.view.ConsoleView;
+import edu.sfsu.csc413.chess.view.EmojiView;
+import edu.sfsu.csc413.chess.view.GameController;
 
-import java.util.List;
-
-/** Entry point: plays e2e4 and e7e5, then takes one move back. */
+/** Entry point: builds a game, a view, and a controller, then starts playing. */
 public final class Main {
 
     public static void main(String[] args) {
         Game game = new Game();
-        TextBoardRenderer renderer = new TextBoardRenderer(PieceGlyphs.LETTERS);
-        System.out.println(renderer.render(game.board()));
-        System.out.println();
 
-        for (String notation : List.of("e2e4", "e7e5")) {
-            game.play(game.findLegalMove(notation).orElseThrow());
+        BoardView view;
+        if (args.length > 0 && args[0].equals("emoji")) {
+            view = new EmojiView();
+        } else {
+            view = new ConsoleView();
         }
-        System.out.println(renderer.render(game.board()));
-        System.out.println();
 
-        game.undoLastMove();
-        System.out.println(renderer.render(game.board()));
+        GameController controller = new GameController(game, view);
+        controller.start();
     }
 
     private Main() {

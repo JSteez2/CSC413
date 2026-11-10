@@ -64,6 +64,25 @@ public final class MoveGenerator {
     }
 
     /**
+     * How the game stands for the side to move: still going, in check,
+     * checkmate, or stalemate.
+     */
+    public static GameStatus status(Board board, Color sideToMove) {
+        boolean isInCheck = isInCheck(board, sideToMove);
+        boolean hasLegalMove = !legalMoves(board, sideToMove).isEmpty();
+
+        if (isInCheck && hasLegalMove) {
+            return GameStatus.CHECK;
+        } else if (isInCheck && !hasLegalMove) {
+            return GameStatus.CHECKMATE;
+        } else if (!isInCheck && !hasLegalMove) {
+            return GameStatus.STALEMATE;
+        } else {
+            return GameStatus.IN_PROGRESS;
+        }
+    }
+
+    /**
      * True if {@code color}'s king is attacked by the other colour.
      *
      * <p>A side with no king on the board is never in check. Tests build

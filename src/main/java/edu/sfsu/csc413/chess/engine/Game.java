@@ -76,6 +76,21 @@ public class Game {
     }
 
     /**
+     * How the game stands for the side to move. Game asks MoveGenerator,
+     * the same way legalMoves() does.
+     */
+    public GameStatus status() {
+        return MoveGenerator.status(board, sideToMove);
+    }
+
+    /**
+     * True when the game has ended in checkmate or stalemate.
+     */
+    public boolean isGameOver() {
+        return status().isGameOver();
+    }
+
+    /**
      * Finds the legal move matching notation such as {@code "e2e4"} or
      * {@code "e7e8q"}, if there is one.
      *
