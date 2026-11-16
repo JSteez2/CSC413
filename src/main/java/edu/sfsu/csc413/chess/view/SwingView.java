@@ -4,11 +4,13 @@ import edu.sfsu.csc413.chess.engine.Game;
 import edu.sfsu.csc413.chess.engine.GameStatus;
 import edu.sfsu.csc413.chess.model.Move;
 import edu.sfsu.csc413.chess.model.Piece;
+import edu.sfsu.csc413.chess.model.PieceType;
 import edu.sfsu.csc413.chess.model.Position;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -55,6 +57,8 @@ public class SwingView extends JPanel implements BoardView {
     private GameController controller;
     private Game game;
     private Position selectedSquare;
+    private Position moveFromSquare;
+    private Position moveToSquare;
     private boolean gameIsFinished;
 
     /** Builds the window. It is not shown until {@link #start}. */
@@ -107,6 +111,35 @@ public class SwingView extends JPanel implements BoardView {
         });
     }
 
+    /**
+     * Asks which piece a pawn becomes, but only when the move just tried really
+     * is a promotion. The controller also asks this for any four-letter move it
+     * can't find, such as an illegal {@code e2e5}, and a dialog then would make
+     * no sense. (Idea taken from m7-run-1.)
+     */
+    @Override
+    public PieceType promotionChoice(Game game) {
+        boolean moveIsPromotion = false;
+        for (Move legalMove : game.legalMoves()) {
+            if (legalMove.isPromotion() && legalMove.from().equals(moveFromSquare)
+                    && legalMove.to().equals(moveToSquare)) {
+                moveIsPromotion = true;
+            }
+        }
+        if (!moveIsPromotion) {
+            return PieceType.QUEEN;
+        }
+
+        PieceType[] pieceChoices = {PieceType.QUEEN, PieceType.ROOK, PieceType.BISHOP, PieceType.KNIGHT};
+        String[] buttonNames = {"Queen", "Rook", "Bishop", "Knight"};
+        int pickedIndex = JOptionPane.showOptionDialog(window, "Promote the pawn to:", "Promotion",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, buttonNames, buttonNames[0]);
+        if (pickedIndex < 0) {
+            return PieceType.QUEEN;
+        }
+        return pieceChoices[pickedIndex];
+    }
+
     /** The game is over or the player quit: stop taking clicks, keep the board on screen. */
     @Override
     public void close() {
@@ -141,7 +174,9 @@ public class SwingView extends JPanel implements BoardView {
         } else if (clickedOwnPiece) {
             selectedSquare = clickedSquare;
         } else {
-            String moveNotation = selectedSquare.toString() + clickedSquare.toString();
+            moveFromSquare = selectedSquare;
+            moveToSquare = clickedSquare;
+            String moveNotation = moveFromSquare.toString() + moveToSquare.toString();
             selectedSquare = null;
             messageLabel.setText(" ");
             controller.handle(new PlayerAction.Move(moveNotation));
