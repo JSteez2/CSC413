@@ -15,6 +15,11 @@ hand and are finished. Your job is views only.
   `controller.handle(new PlayerAction.Move("e2e4"))`.
 - In `Main.main`, add one `else if` for the new view's command-line word,
   next to the existing `emoji` check. Change nothing else in `Main`.
+- Write it simply, the way a student would: one class unless a second is
+  clearly needed, plain loops and `if`/`else`, and descriptive camelCase
+  names.
+- When a piece is selected, mark the squares it can move to. Get them
+  from `game.legalMoves()`; don't work them out.
 
 ## Don't
 
