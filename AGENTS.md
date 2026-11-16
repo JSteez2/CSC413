@@ -18,6 +18,8 @@ hand and are finished. Your job is views only.
 - Write it simply, the way a student would: one class unless a second is
   clearly needed, plain loops and `if`/`else`, and descriptive camelCase
   names.
+- When a piece is selected, mark the squares it can move to. Get them
+  from `game.legalMoves()`; don't work them out.
 
 ## Don't
 
