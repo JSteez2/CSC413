@@ -119,19 +119,31 @@ the two fields it reads, `moveFromSquare` and `moveToSquare`, set at lines
 
 ## 9. Debugger evidence
 
-[Fill in after doing it in IntelliJ. I found no real bug in the views, so
-this follows one move through the click handler.]
+I found no real bug in the views, so I followed one move through the click
+handler with `jdb`, the JDK's debugger
+(`jdb -classpath target/classes edu.sfsu.csc413.chess.Main swing`).
 
-Breakpoint on `SwingView.java:163` (`boolean clickedOwnPiece = ...`), then
-Debug `Main` with the program argument `swing`, and click e2.
-
-- I predicted: `file` = ___, `rank` = ___, `clickedSquare` = ___,
-  `clickedOwnPiece` = ___, and that `selectedSquare` would become e2.
-- I saw: `x` = ___, `y` = ___, `file` = ___, `rank` = ___,
-  `clickedSquare` = ___, `clickedOwnPiece` = ___.
-- Then I resumed and clicked e4. At line 182 `moveNotation` was ___.
+- **What to expect.** Squares are 72 pixels, files count from a = 0, and
+  ranks from rank 1 = 0, so a click on c2 should give `file` = 2 and
+  `rank` = 1, and moving c2 to c4 should send the notation `c2c4`.
+- **Breakpoint at `SwingView.java:163`, clicking the pawn on c2.** `locals`
+  showed `x` = 175, `y` = 467, `file` = 2, `rank` = 1, and `clickedPiece`
+  was a `Pawn`. That matches lines 156-157: 175 / 72 = 2, and
+  7 - 467 / 72 = 7 - 6 = 1, and `print clickedSquare.toString()` showed
+  `"c2"`. The rank flip from session 18 works. After
+  `next`, `print clickedOwnPiece` showed `true`: it was White's turn and
+  White's pawn, so the view selected it.
+- **Breakpoint at `SwingView.java:182`, clicking c2 and then c4.**
+  `print moveNotation` showed `"c2c4"`, the move that is sent to the
+  controller on that line.
+- While it was paused, the chess window froze until I typed `cont`, which
+  is expected when the event thread is stopped (session 18 §5).
 
 ## 10. By hand
 
-[Fill in after your own commit.] Commit `_______` ("M7 by hand: ___").
-What I changed: ___. To make it, I read ___.
+Commit `7ea9680` ("M7 by hand: selected square is light purple instead of
+yellow"). What I changed: the colour of the selected square, from yellow
+(246, 246, 105) to light purple (200, 162, 200), on `SwingView.java:49`.
+To make it, I read line 49, where the colour is defined, and the drawing
+loop in `paintComponent`, where `if (square.equals(selectedSquare))` uses
+it to choose the square's colour.
