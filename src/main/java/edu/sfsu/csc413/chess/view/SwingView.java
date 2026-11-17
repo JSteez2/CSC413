@@ -46,7 +46,7 @@ public class SwingView extends JPanel implements BoardView {
     private static final int SQUARE_SIZE = 72;
     private static final Color LIGHT_SQUARE_COLOR = new Color(240, 217, 181);
     private static final Color DARK_SQUARE_COLOR = new Color(181, 136, 99);
-    private static final Color SELECTED_SQUARE_COLOR = new Color(246, 246, 105);
+    private static final Color SELECTED_SQUARE_COLOR = new Color(200, 162, 200);
     private static final Color LEGAL_MOVE_DOT_COLOR = new Color(40, 90, 40, 160);
 
     private final JFrame window = new JFrame("Chess");
